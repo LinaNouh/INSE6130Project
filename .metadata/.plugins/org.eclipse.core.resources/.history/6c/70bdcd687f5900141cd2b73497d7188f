@@ -1,0 +1,16 @@
+
+public class FeatureExtractor {
+	
+	public void extract(float[] times, int[] sizes, int[] features){
+		
+	}
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+	}
+
+}
