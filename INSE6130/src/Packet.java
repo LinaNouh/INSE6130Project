@@ -1,7 +1,7 @@
 import java.util.Comparator;
 
 
-public class Packet implements Comparator<Packet> {
+public class Packet implements Comparable<Packet> {
 
 	float time = 0;
 	int direction = 0;
@@ -46,8 +46,8 @@ public class Packet implements Comparator<Packet> {
 
 	@Override
 	//Comparing packets based on time in order to sort them
-	public int compare(Packet p1, Packet p2) {
-		return (int) (p1.getTime() - p2.getTime());
+	public int compareTo(Packet p) {
+		return (int) (this.getTime() - p.getTime());
 	}
 
 }
