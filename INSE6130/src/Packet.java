@@ -1,5 +1,3 @@
-import java.util.Comparator;
-
 
 public class Packet implements Comparable<Packet> {
 
@@ -47,7 +45,12 @@ public class Packet implements Comparable<Packet> {
 	@Override
 	//Comparing packets based on time in order to sort them
 	public int compareTo(Packet p) {
-		return (int) (this.getTime() - p.getTime());
+		if(this.getTime() > p.getTime())
+			return 1;
+		if(this.getTime() < p.getTime())
+			return -1;
+		else
+			return 0;
 	}
 
 }

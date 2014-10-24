@@ -5,7 +5,7 @@ import java.util.Collections;
 
 public class FeatureExtractor {
 	
-	private Integer sum(ArrayList<Integer> list) {
+	public static int sum(ArrayList<Integer> list) {
 	     Integer sum= 0; 
 	     for (Integer i:list)
 	         sum = sum + i;
