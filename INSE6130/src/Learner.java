@@ -32,9 +32,11 @@ public class Learner {
 	
 	//a method to randomly initialize the weight of each feature 
 	public float[] initialize_weights(float[] features, float[] weights){
+		
 		for (int i = 0; i < numFeatures; i++) {
 			weights[i] = (float)(randomGenerator.nextInt(100)/ 100.0 + 0.5);
 		}
+		
 		return weights;
 		/*float sum = 0;
 		for (int j = 0; j < FEAT_NUM; j++) {
