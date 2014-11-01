@@ -18,5 +18,17 @@ public class FeatureExtractorTest {
 		
 		assertEquals(actualResult , expectedResult);
 	}
+	
+	@Test
+	public void testExtract(){
+		ArrayList<Float> times = new ArrayList<Float>(); 
+		ArrayList<Integer> directions = new ArrayList<Integer>();
+		ArrayList<String> features = new ArrayList<String>(); 
+		
+		FeatureExtractor.extract(times, directions, features);
+		ArrayList<String> expectedResult = new ArrayList<String>(); 
+		
+		assertEquals(features , expectedResult);
+	}
 
 }
