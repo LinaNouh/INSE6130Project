@@ -24,7 +24,7 @@ public class PacketTest {
 		
 		int actualResult = p1.compareTo(p2);
 		
-		assertEquals(actualResult , 1);
+		assertEquals(1, actualResult);
 	}
 	
 	@Test
@@ -34,7 +34,7 @@ public class PacketTest {
 		
 		int actualResult = p1.compareTo(p2);
 		
-		assertEquals(actualResult , -1);
+		assertEquals(-1, actualResult);
 	}
 	
 	@Test
@@ -44,7 +44,7 @@ public class PacketTest {
 		
 		int actualResult = p1.compareTo(p2);
 		
-		assertEquals(actualResult , 0);
+		assertEquals(0, actualResult);
 	}
 
 }

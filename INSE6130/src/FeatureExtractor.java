@@ -17,10 +17,25 @@ public class FeatureExtractor {
 	     return sum;
 	}
 	
-	public static void extract(ArrayList<Float> times, ArrayList<Integer> directions, ArrayList<String> features){
+	/*
+	 * This function returns an array list of features in the following order:
+	 * {NumPackets, NumInPackets, NumOutPackets, TotalTime, containLengthXXX(multiple), InPacket(multiple), InPacketDist(multiple),
+	 * NumInPacketsInB(multiple), NoBlock*, MaxBurst, AverageBurst, NumBursts, Bursts(i)(multiple), Burst(multiple), Size(multiple)}       
+	 */
+	public static ArrayList<Feature> extract(ArrayList<Float> times, ArrayList<Integer> directions){
+		
+		int numBirstsToInc = 5;
+		int numSizesToInc = 20;
+		int minLength = -2;//-1500;
+		int maxLength = 3;//1501;
+		int maxInPackets = 10;//300;
+		int packetBlockSize = 30;
+		int numPacketsForDist = 3000;
+		
+		ArrayList<Feature> features = new ArrayList<Feature>();
 		
 		//transmission size features 
-		features.add(""+times.size()); //how many lines read from the data file
+		features.add(new Feature("NumPackets", ""+times.size())); //how many lines read from the data file
 		
 		int c = 0;
 		for(int i=0; i<directions.size(); i++){
@@ -28,31 +43,33 @@ public class FeatureExtractor {
 				c++;
 		}
 		
-		features.add(""+c);//how many positive sizes
-		features.add(""+(times.size() - c));//how many negative sizes
+		features.add(new Feature("NumInPackets", ""+c));//how many positive direction
+		features.add(new Feature("NumOutPackets", ""+(times.size() - c)));//how many negative direction
+		features.add(new Feature("TotalTime",
+				""+(times.get(times.size()-1) - times.get(0))));//last time - first time
 		
-		features.add(""+(times.get(-1) - times.get(0)));//last time - first time
 		
-		//unique packet lengths
-		for(int i=-1500; i<1501; i++){
-			if (Arrays.asList(directions).contains(i))
-				features.add(""+1);
+		//unique packet lengths between -1500 and 1501 
+		for(int i=minLength; i<maxLength; i++){
+			if (directions.contains(i))
+				features.add(new Feature("containLength"+i,""+1));
 			else
-				features.add(""+0);
+				features.add(new Feature("containLength"+i,""+0));
 		}
+		
 		
 		//Transposition (similar to good distance scheme)
 		c = 0;
 		for(int i=0; i<directions.size(); i++){
 			if(directions.get(i) > 0){
 				c++;
-				features.add(""+i);//adding first 300 positive sizes
+				features.add(new Feature("InPacket",""+i));//adding first 300 positive direction
 			}
-			if(c == 300)
+			if(c == maxInPackets)
 				break;
 		}
-		for(int i=c; i<300; i++){
-			features.add("X");//if positive sizes are less than 300 pad the rest with "X"
+		for(int i=c; i<maxInPackets; i++){
+			features.add(new Feature("InPacket","X"));//if positive direction are less than 300 pad the rest with "X"
 		}
 		
 		c = 0;
@@ -60,49 +77,66 @@ public class FeatureExtractor {
 		for(int i=0; i<directions.size();i++){
 			if(directions.get(i) > 0){
 				c++;
-				features.add(""+(i-previousLocation));//adding distance between each positive size and the previous positive size
+				features.add(new Feature("InPacketDist",""+(i-previousLocation)));//adding distance between each positive direction and the previous positive
 				previousLocation = i;
 			}
-			if(c == 300)//only consider first 300 positive sizes
+			if(c == maxInPackets)//only consider first 300 positive direction
 				break;
 		}
-		for(int i=c; i<300; i++){
-			features.add("X");//if positive sizes are less than 300 pad the rest with "X"
+		for(int i=c; i<maxInPackets; i++){
+			features.add(new Feature("InPacketDist","X"));//if positive directions are less than 300 pad the rest with "X"
 		}
 		
+		c = 0;
 		//Packet distributions (where are the outgoing packets concentrated)
-		for(int i=0; i< Math.min(directions.size(), 3000); i++){
-			if(i % 30 != 29){
-				if(directions.get(i)>0)
+		for(int i=0; i< Math.min(directions.size(), numPacketsForDist); i++){
+			if(i % packetBlockSize != packetBlockSize-1){
+				if(directions.get(i)>0){
 					c++;
+				}
 			}else{
-				features.add(""+c);//add number of positive sizes in every 29 lines
+				features.add(new Feature("NumInPacketsInB",""+c));//add number of positive direction in every 30 lines
 				c = 0;
 			}
 		}
 		
-		for(int i=directions.size()/30;i<100;i++){//if the groups of 30 are less than 100 (total < 3000) pad the rest with 0
-			features.add(""+0);
+		if(directions.size() < packetBlockSize-1){
+			features.add(new Feature("NumInPacketsInB",""+c));
 		}
+		if(directions.size()<30){
+			for(int i=1;i<100;i++){
+				features.add(new Feature("NoBlock",""+0));
+			}
+		}else
+			for(int i=directions.size()/30;i<100;i++){//if the groups of 30 are less than 100 (total < 3000) pad the rest with 0
+				features.add(new Feature("NoBlock",""+0));
+			}
 		
 		//Bursts (no two adjacent incoming packets)
 		ArrayList<Integer> bursts = new ArrayList<Integer>();
 		int currentBurst = 0;
 		int stopped = 0;
+		boolean addedBurst = false;
 		for(int i=0; i<directions.size();i++){
 			if(directions.get(i) < 0){//outgoing
 				stopped = 0;
 				currentBurst -= directions.get(i); 
+				addedBurst = false;
 			}else if(directions.get(i) > 0 && stopped == 0){//first incoming
+				addedBurst = false;
 				stopped = 1;
-			}else if(directions.get(i) > 0 && stopped == 1){//second incoming
+			}else if(directions.get(i) > 0 && stopped == 1 && currentBurst != 0){//second incoming
 				stopped = 0;
 				bursts.add(currentBurst);
+				addedBurst = true;
 			}
 		}
-		features.add(""+Collections.max(bursts));
-		features.add(""+(sum(bursts)/bursts.size()));
-		features.add(""+bursts.size());
+		if(addedBurst == false)
+			bursts.add(currentBurst);
+		
+		features.add(new Feature("MaxBurst",""+Collections.max(bursts)));
+		features.add(new Feature("AverageBurst",""+(sum(bursts)/bursts.size())));
+		features.add(new Feature("NumBursts",""+bursts.size()));
 		
 		int[] counts = new int[3];
 		counts[0] = 0;
@@ -118,22 +152,26 @@ public class FeatureExtractor {
 		}
 		
 		for(int i=0; i<counts.length;i++)
-			features.add(""+counts[i]);
+			features.add(new Feature("Bursts"+i,""+counts[i]));
 		
-		for(int i=0; i<5; i++){//add first 5 bursts
-			//if(bursts[i] != "X")
-			features.add(""+bursts.get(i));
+		for(int i=0; i<numBirstsToInc; i++){//add first numBirstsToInc bursts
+			if(i < bursts.size())
+				features.add(new Feature("Burst",""+bursts.get(i)));
 		}
 		
-		for(int i=0; i<20; i++){//add first 20 sizes +1500
-			//if(bursts[i] != "X")
-			features.add(""+(directions.get(i)+1500));
+		for(int i=0; i<numSizesToInc; i++){//add first numSizesToInc sizes +1500
+			if(i < directions.size())
+				features.add(new Feature("Size",""+(directions.get(i)+1500)));
+			else
+				features.add(new Feature("Size",""+0));
 		}
 		
+		return features;
 	}//end of extract method
 
 	
 	public static void main(String[] args) throws IOException {
+		ArrayList<Feature> feature = new ArrayList<Feature>();
 		for(int site=0; site<=100; site++)
 		{
 		for (int inst=0; inst<=90; inst++)
@@ -160,8 +198,8 @@ public class FeatureExtractor {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-			ArrayList<String> feature = new ArrayList<String>();
-			extract(time,size,feature);
+			
+			feature = extract(time,size);
 			try {
 				PrintWriter writer = new PrintWriter(fname + "f");
 				for(int i=0; i<feature.size();i++){
@@ -175,7 +213,6 @@ public class FeatureExtractor {
 			}
 		}
 		
-		ArrayList<String> feature = new ArrayList<String>();
 		for(int site1=0; site1<=9000; site1++)
 		{
 			String fname = "batch/" + site1;
@@ -201,7 +238,7 @@ public class FeatureExtractor {
 						e.printStackTrace();
 					}
 			
-			extract(time1,size1,feature);
+			feature = extract(time1,size1);
 			try {
 				PrintWriter writer = new PrintWriter(fname + "f");
 				for(int i=0; i<feature.size();i++){
@@ -221,7 +258,6 @@ public class FeatureExtractor {
 			System.out.println(feature.size());
 			writer1.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
 	}

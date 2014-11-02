@@ -15,7 +15,7 @@ public class PacketComparatorTest {
 		
 		int actualResult = pc.compare(p1,p2);
 		
-		assertEquals(actualResult , 1);
+		assertEquals(1, actualResult);
 	}
 	
 	@Test
@@ -27,7 +27,7 @@ public class PacketComparatorTest {
 		
 		int actualResult = pc.compare(p1,p2);
 		
-		assertEquals(actualResult , -1);
+		assertEquals(-1, actualResult);
 	}
 	
 	@Test
@@ -39,7 +39,7 @@ public class PacketComparatorTest {
 		
 		int actualResult = pc.compare(p1,p2);
 		
-		assertEquals(actualResult , 0);
+		assertEquals(0, actualResult);
 	}
 	
 	@Test
@@ -66,7 +66,7 @@ public class PacketComparatorTest {
 		
 		Collections.sort(pList1, new PacketComparator());
 		
-		assertEquals(pList1 , pList2);
+		assertEquals(pList2, pList1);
 	}
 
 }
