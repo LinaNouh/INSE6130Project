@@ -1,4 +1,7 @@
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Random;
 
 public class Learner {
@@ -93,7 +96,7 @@ public class Learner {
 		for(int i=0; i<ending;i++){
 			System.out.println("Learning distance..."+i+" "+(beginning - ending));
 			int currentSite = i/numInstances;
-			//int currentInstance = i % numInstances;
+			int currentInstance = i % numInstances;
 
 			float badness = 0;
 			float goodDistMax = 0;
