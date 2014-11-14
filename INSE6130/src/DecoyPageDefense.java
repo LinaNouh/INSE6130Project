@@ -30,7 +30,6 @@ public class DecoyPageDefense{
 		}
 		
 		String fold = "batch/";
-		String foldout = "batchusenix-pdef/";
 		int count = 0;
 		
 		for(int site=0;site<=numSites;site++)
@@ -71,10 +70,8 @@ public class DecoyPageDefense{
 					}
 					reader.close();
 				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 

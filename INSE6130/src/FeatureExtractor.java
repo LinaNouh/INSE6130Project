@@ -4,7 +4,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 
 
@@ -195,7 +194,6 @@ public class FeatureExtractor {
 				 reader.close();
 			}
 				 catch (FileNotFoundException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 			
@@ -207,7 +205,6 @@ public class FeatureExtractor {
 				}
 				writer.close();
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} 
 			}
@@ -234,7 +231,6 @@ public class FeatureExtractor {
 				 reader.close();
 			}
 				 catch (FileNotFoundException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 			
@@ -246,7 +242,6 @@ public class FeatureExtractor {
 				}
 				writer.close();
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} 
 		}

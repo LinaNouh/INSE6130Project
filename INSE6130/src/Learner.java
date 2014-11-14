@@ -1,27 +1,32 @@
-import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Random;
 
 public class Learner {
 
 	//Data Set Attributes
-	private int numFeatures = 3736;//how many features
+	private static int numFeatures = 3736;//how many features
 
 	private static final int numSites = 100;//how many sites are monitored
 	private static final int numInstances = 60;//how many instances per site are used for distance learning
 	private static final int numTestInstances = 30;//how many instances per site are used for kNN training/testing
 
-	private int numOpenTest = 0;//how many open instances are used for kNN training/testing
-	private int numNeighbors = 1;//how many neighbors are used for kNN
+	private static int numOpenTest = 0;//how many open instances are used for kNN training/testing
+	private static int numNeighbors = 1;//how many neighbors are used for kNN
 
 	private static final int numRecPoints = 5;//how many neighbors are used for distance learning
 
 	//Algorithm Attributes
-	private Random randomGenerator = new Random();
+	private static Random randomGenerator = new Random();
 
-	private float POWER = (float) 0.1; //not used in this code
+	private static float POWER = (float) 0.1; //not used in this code
 
-	private static final int numRecoList = 10;
-	private static final int numReco = 1;
+	//private static final int numRecoList = 10;
+	//private static final int numReco = 1;
 
 	public boolean arrayContains(int e, int[] array, int len){
 		for(int i = 0; i < len; i++) {
@@ -31,7 +36,7 @@ public class Learner {
 		return false;
 	}
 
-	public float arrayMax(float[] array){
+	public static float arrayMax(float[] array){
 		float max = 0;
 		for(int i=0; i<array.length;i++){
 			if(array[i] > max){
@@ -41,7 +46,7 @@ public class Learner {
 		return max;
 	}
 
-	public int arrayMinIndex(float[] array, int startInd, int endInd){
+	public static int arrayMinIndex(float[] array, int startInd, int endInd){
 		float min = array[startInd];
 		int minInd = startInd;
 		for(int i=startInd; i<endInd;i++){
@@ -53,27 +58,18 @@ public class Learner {
 		return minInd;
 	}
 
-	//a method to randomly initialize the weight of each feature 
-	public float[] initialize_weights(float[] features, float[] weights){
+	//A method to randomly initialize the weight of each feature 
+	public static float[] initialize_weights(float[][] feat, float[] weights){
 
 		for (int i = 0; i < numFeatures; i++) {
 			weights[i] = (float)(randomGenerator.nextInt(100)/ 100.0 + 0.5);
 		}
 
 		return weights;
-		/*float sum = 0;
-		for (int j = 0; j < FEAT_NUM; j++) {
-			if (abs(weight[j]) > sum) {
-			sum += abs(weight[j]);
-			}
-		}
-		for (int j = 0; j < FEAT_NUM; j++) {
-			weight[j] = weight[j]/sum * 1000;
-		}*/
 	}
 
 	//a method to compute the distance between two sets of features
-	public float computeDistance(float[] firstFeatures, float[] secondFeatures, 
+	public static float computeDistance(float[] firstFeatures, float[] secondFeatures, 
 			float[] weight, float power){
 		float dist = 0;
 		for (int i = 0; i < numFeatures; i++) {
@@ -84,13 +80,15 @@ public class Learner {
 		return dist;
 	}
 
-	public void recommend(int beginning, int ending, ArrayList<float[]> features, float[] weights){
+	public static void recommend(int beginning, int ending, float[][] feat, float[] weights){
 
+		//initializing arrays
 		float[] distanceList = new float[numSites * numInstances];
 		int[] goodListRec = new int[numRecPoints];
 		int[] badListRec = new int[numRecPoints];
 
-		for(int i=0; i<ending;i++){
+		//loop through the features starting from the beginning index until the ending index
+		for(int i=beginning; i<ending; i++){
 			System.out.println("Learning distance..."+i+" "+(beginning - ending));
 			int currentSite = i/numInstances;
 			//int currentInstance = i % numInstances;
@@ -98,14 +96,18 @@ public class Learner {
 			float badness = 0;
 			float goodDistMax = 0;
 
+			//compute the distance between this set of features i and all other sets of features and save in distanceList
 			for(int j=0;j<numSites * numInstances; j++){
-				distanceList[j] = computeDistance(features.get(i), features.get(j), weights, POWER);
+				distanceList[j] = computeDistance(feat[i], feat[j], weights, POWER);
 			}
 
+			//find the max distance
 			float max = arrayMax(distanceList);
 			distanceList[i] = max;
 
+			//setting the maximum good distance 
 			for(int j = 0; j < numRecPoints; j++) {
+				//finding the minimum distance within the range
 				int minInd = arrayMinIndex(distanceList,currentSite*numInstances,(currentSite+1)*numInstances);
 				if (distanceList[minInd] > goodDistMax) 
 					goodDistMax = distanceList[minInd];
@@ -128,27 +130,6 @@ public class Learner {
 			badness /= (float)numRecPoints;
 			badness += 0.2;
 
-			/*
-			if (i == 0) {
-				float gooddist = 0;
-				float baddist = 0;
-				printf("Current point: %d\n", i);
-				printf("Bad points:\n");
-				for (int k = 0; k < RECOPOINTS_NUM; k++) {
-					printf("%d, %f\n", recobadlist[k], dist(feat[i], feat[recobadlist[k]], weight, POWER));	
-					baddist += dist(feat[i], feat[recobadlist[k]], weight, POWER);
-				}
-
-				printf("Good points:\n");
-				for (int k = 0; k < RECOPOINTS_NUM; k++) {
-					printf("%d, %f\n", recogoodlist[k], dist(feat[i], feat[recogoodlist[k]], weight, POWER));
-					gooddist += dist(feat[i], feat[recogoodlist[k]], weight, POWER);
-				}
-
-				printf("Total bad distance: %f\n", baddist);
-				printf("Total good distance: %f\n", gooddist);
-			}*/
-
 			float[] featuresDist = new float[numFeatures];
 			//initializing distances to 0
 			for (int f = 0; f < featuresDist.length; f++) {
@@ -166,70 +147,65 @@ public class Learner {
 					float goodMax = 0;
 					int badCount = 0;
 					for (int k = 0; k < numRecPoints; k++) {
-						float n = Math.abs(features.get(i)[f] - features.get(goodListRec[k])[f]);
-						if (features.get(i)[f] == -1 || features.get(badListRec[k])[f] == -1) 
+						float n = Math.abs(feat[i][f] - feat[goodListRec[k]][f]);
+						if (feat[i][f] == -1 || feat[badListRec[k]][f] == -1) 
 							n = 0;
 						if (n >= goodMax) 
 							goodMax = n;
 					}
-					
+
 					for (int k = 0; k < numRecPoints; k++) {
-						float n = Math.abs(features.get(i)[f] - features.get(badListRec[k])[f]);
-						if (features.get(i)[f] == -1 || features.get(badListRec[k])[f] == -1) 
+						float n = Math.abs(feat[i][f] - feat[badListRec[k]][f]);
+						if (feat[i][f] == -1 || feat[badListRec[k]][f] == -1) 
 							n = 0;
 						featuresDist[f] += n;
 						if (n <= goodMax) badCount += 1;
 					}
-					
+
 					badList[f] = badCount;
 					if (badCount < badListMin) 
 						badListMin = badCount;
 				}
 			}
-			
+
 			for (int f = 0; f < numFeatures; f++) {
 				if (badList[f] != badListMin) 
 					badListCount += 1;
 			}
-			
+
 			int[] w0id = new int[badListCount];
 			float[] change = new float[badListCount];
 			int temp = 0;
 			float C1 = 0;
-			float C2 = 0;
-			
+			//float C2 = 0;
+
 			for (int f = 0; f < numFeatures; f++) {
 				if (badList[f] != badListMin) {
 					w0id[temp] = f;
 					change[temp] = (float) (weights[f] * 0.01 * badList[f]/(float)numRecPoints * badness);
-					//if (change[temp] < 1.0/1000) change[temp] = weight[f];
+					if (change[temp] < 1.0/1000) 
+						change[temp] = weights[f];
 					C1 += change[temp] * featuresDist[f];
-					C2 += change[temp];
+					//C2 += change[temp];
 					weights[f] -= change[temp];
 					temp += 1;
 				}
 			}
-			
+
 			float totalfd = 0;
 			for (int f = 0; f < numFeatures; f++) {
 				if (badList[f] == badListMin && weights[f] > 0) {
 					totalfd += featuresDist[f];
 				}
 			}
-			
+
 			for (int f = 0; f < numFeatures; f++) {
 				if (badList[f] == badListMin && weights[f] > 0) {
 					weights[f] += C1/(totalfd);
 				}
 			}
-			
-			//featuresDist = null;
-			//w0id = null;
-			//change = null;
-			//badList = null;
-			
 		}
-		
+
 		Random randomGenerator = new Random();
 		for (int j = 0; j < numFeatures; j++) {
 			if (weights[j] > 0)
@@ -237,9 +213,301 @@ public class Learner {
 		}
 	}
 
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+	static float accuracy(float[][] closedfeat, float[] weight, float[][] openfeat) {
 
+		float tp = 0;
+		float tn = 0;
+
+		float[][] feat = new float[numSites*numTestInstances + numOpenTest][];
+
+		for (int i = 0; i < numSites*numTestInstances; i++) {
+			feat[i] = closedfeat[i];
+		}
+		for (int i = 0; i < numOpenTest; i++) {
+			feat[i + numSites * numTestInstances] = openfeat[i];
+		}
+
+		float[] distlist = new float[numSites * numTestInstances + numOpenTest];
+		int[] classlist = new int[numSites + 1];
+
+		for (int is = 0; is < numSites*numTestInstances + numOpenTest; is++) {
+			System.out.printf("\rComputing accuracy... %d (%d-%d)", is,
+					numSites*numTestInstances + numOpenTest);
+
+
+			for (int i = 0; i < numSites+1; i++) {
+				classlist[i] = 0;
+			}
+			int maxclass = 0;
+			for (int at = 0; at < numSites * numTestInstances + numOpenTest; at++) {
+				distlist[at] = computeDistance(feat[is], feat[at], weight, POWER);
+			}
+			float max =  arrayMax(distlist);
+			distlist[is] = max;
+			for (int i = 0; i < numNeighbors; i++) {
+				int ind = arrayMinIndex(distlist, 0, numSites*numTestInstances+numOpenTest-1);
+				int classind = 0;
+				if (ind < numSites * numTestInstances) {
+					classind = ind/numTestInstances;
+				}
+				else {
+					classind = numSites;
+				}
+				classlist[classind] += 1;
+				if (classlist[classind] > maxclass) {
+					maxclass = classlist[classind];
+				}
+				distlist[ind] = max;
+			}
+
+			int trueclass = is/numTestInstances;
+			if (trueclass > numSites) trueclass = numSites;
+
+			int countclass = 0;
+			int hascorrect = 0;
+
+			int hasconsensus = 0;
+			for (int i = 0; i < numSites+1; i++) {
+				if (classlist[i] == numNeighbors) {
+					hasconsensus = 1;
+				}
+			}
+			if (hasconsensus == 0) {
+				for (int i = 0; i < numSites; i++) {
+					classlist[i] = 0;
+				}
+				classlist[numSites] = 1;
+				maxclass = 1;
+			}
+
+			for (int i = 0; i < numSites+1; i++) {
+				if (classlist[i] == maxclass) {
+					countclass += 1;
+					if (i == trueclass) {
+						hascorrect = 1;
+					}
+				}
+			}
+
+			float thisacc = 0;
+			if (hascorrect == 1) {
+				thisacc = (float) (1.0/countclass);
+			}
+			
+			if (trueclass == numSites) {
+				tn += thisacc;
+			}
+			else {
+				tp += thisacc;
+			}
+
+		}
+
+		System.out.println("\n");
+
+
+		tp /= numSites*numTestInstances;
+		if (numOpenTest > 0)                
+			tn /= numOpenTest;
+		else 
+			tn = 1;
+		
+		return tp;
 	}
 
+	public static void main(String[] args) {
+		
+		System.out.println("Hello,");
+
+		//initializing number of open tests 
+		System.out.println("Choosing from: {0, 10, 50, 100, 200, 300, 500, 1000, 1500, 2000, 3000, 5000}");
+		System.out.println("Please enter the number of open tests:");
+		numOpenTest = Integer.parseInt(System.console().readLine());
+
+		//initializing number of neighbors
+		System.out.println("Choosing from: {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15}");
+		System.out.println("Please enter the number of neighbors:");
+		numNeighbors = Integer.parseInt(System.console().readLine());
+
+		//Random randomGenerator = new Random(System.currentTimeMillis());
+
+		float[][] feat = new float[numSites * numInstances][];
+		float[][] testfeat = new float[numSites * numTestInstances][];
+		float[][] opentestfeat = new float[numOpenTest][];
+
+		//creating the feature array for each instance of each site
+		for (int i = 0; i < numSites * numInstances; i++)
+		{
+			feat[i] = new float[numFeatures];
+		}
+
+		//creating the feature array for each test instance of each site
+		for (int i = 0; i < numSites * numTestInstances; i++)
+		{
+			testfeat[i] = new float[numFeatures];
+		}
+
+		//creating the feature array for each open test instance
+		for (int i = 0; i < numOpenTest; i++)
+		{
+			opentestfeat[i] = new float[numFeatures];
+		}
+
+		//loop for each instance of each site
+		for (int cur_site = 0; cur_site < numSites; cur_site++)
+		{
+			int real_inst = 0;
+			for (int cur_inst = 0; cur_inst < numInstances; cur_inst++)
+			{
+				boolean fileExists = false;
+				BufferedReader reader = null;
+
+				while (!fileExists)
+				{
+					String file_name = "batch/"+cur_site+"-"+real_inst;
+					try {
+						reader = new BufferedReader(new FileReader(file_name));
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					}
+
+					//check if file exists
+					if ((file_name.length()) > 0 && (new File(file_name).exists()))
+					{
+						fileExists = true;
+					}
+					real_inst++;
+				}
+				//read first line from data file
+				String str;
+				try {
+					str = reader.readLine();
+					reader.close();
+					
+					String tempstr = "";
+					int feat_count = 0;
+					//populating the features array for the current instance
+					for (int i = 0; i < str.length(); i++)
+					{
+						if (str.charAt(i) == ' ')
+						{
+							if (tempstr.charAt(1) == 'X')
+							{
+								feat[cur_site * numInstances + cur_inst][feat_count] = -1F;
+							}
+							else
+							{
+								feat[cur_site * numInstances + cur_inst][feat_count] = Float.parseFloat(tempstr);
+							}
+							feat_count += 1;
+							tempstr = "";
+						}
+						else
+						{
+							tempstr += str.charAt(i);
+						}
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+			for (int cur_inst = 0; cur_inst < numTestInstances; cur_inst++)
+			{
+				boolean fileExists = false;
+				BufferedReader reader = null;
+
+				while (!fileExists)
+				{
+					String file_name = "batch/"+cur_site+"-"+real_inst;
+					try {
+						reader = new BufferedReader(new FileReader(file_name));
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					}
+					//check if file exists
+					if ((file_name.length()) > 0 && (new File(file_name).exists()))
+					{
+						fileExists = true;
+					}
+					real_inst++;
+				}
+				String str;
+				try {
+					str = reader.readLine();
+					reader.close();
+					
+					String tempstr = "";
+					int feat_count = 0;
+					for (int i = 0; i < str.length(); i++)
+					{
+						if (str.charAt(i) == ' ')
+						{
+							if (tempstr.charAt(1) == 'X')
+							{
+								testfeat[cur_site * numTestInstances + cur_inst][feat_count] = -1F;
+							}
+							else
+							{
+								testfeat[cur_site * numTestInstances + cur_inst][feat_count] = Float.parseFloat(tempstr);
+							}
+							feat_count += 1;
+							tempstr = "";
+						}
+						else
+						{
+							tempstr += str.charAt(i);
+						}
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		float[] weight = new float[numFeatures];
+
+		int TRIAL_NUM = 1;
+		int SUBROUND_NUM = 5;
+		float maxacc = 0F;
+		
+		weight = initialize_weights(feat, weight);
+
+		float[] prevweight = new float[numFeatures];
+		for (int i = 0; i < numFeatures; i++)
+		{
+			prevweight[i] = weight[i];
+		}
+
+		for (int trial = 0; trial < TRIAL_NUM; trial++){
+			for (int subround = 0; subround < SUBROUND_NUM; subround++)
+			{
+				int start = (numSites * numInstances) / SUBROUND_NUM * subround;
+				int end = (numSites * numInstances) / SUBROUND_NUM * (subround + 1);
+				recommend(start, end, feat, weight );
+				float tp = accuracy(testfeat, weight, opentestfeat);
+
+				if (tp > maxacc)
+				{
+					maxacc = tp;
+				}
+				//System.out.printf("Round %d-%d, accuracy: %f %f, best accuracy: %f\n", trial,subround,tp, tn, maxacc);
+			}
+		}
+
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter("weights");
+			
+			for (int i = 0; i < numFeatures; i++)
+			{
+				writer.println(weight[i] * 1000);
+			}
+			writer.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}		
+	}
 }
+
+
