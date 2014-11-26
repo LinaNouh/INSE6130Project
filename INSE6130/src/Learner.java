@@ -28,8 +28,10 @@ public class Learner {
 	//private static final int numRecoList = 10;
 	//private static final int numReco = 1;
 
-	public boolean arrayContains(int e, int[] array, int len){
-		for(int i = 0; i < len; i++) {
+	public static boolean arrayContains(int e, int[] array){
+		if(array == null || array.length == 0)
+			return false;
+		for(int i = 0; i < array.length; i++) {
 			if (array[i] == e)
 				return true;
 		}
