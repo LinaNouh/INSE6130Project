@@ -23,7 +23,7 @@ public class Learner {
 	//Algorithm Attributes
 	private static Random randomGenerator = new Random();
 
-	private static float POWER = (float) 0.1; //not used in this code
+	//private static float POWER = (float) 0.1; //not used in this code
 
 	//private static final int numRecoList = 10;
 	//private static final int numReco = 1;
@@ -39,6 +39,8 @@ public class Learner {
 	}
 
 	public static float arrayMax(float[] array){
+		if(array == null || array.length == 0)
+			return 0;
 		float max = 0;
 		for(int i=0; i<array.length;i++){
 			if(array[i] > max){
@@ -49,6 +51,8 @@ public class Learner {
 	}
 
 	public static int arrayMinIndex(float[] array, int startInd, int endInd){
+		if(array == null || array.length == 0)
+			return 0;
 		float min = array[startInd];
 		int minInd = startInd;
 		for(int i=startInd; i<endInd;i++){
@@ -61,9 +65,9 @@ public class Learner {
 	}
 
 	//A method to randomly initialize the weight of each feature 
-	public static float[] initialize_weights(float[][] feat, float[] weights){
-
-		for (int i = 0; i < numFeatures; i++) {
+	public static float[] initializeWeights(int numWeights){
+		float[] weights = new float[numWeights];
+		for (int i = 0; i < weights.length; i++) {
 			weights[i] = (float)(randomGenerator.nextInt(100)/ 100.0 + 0.5);
 		}
 
@@ -72,9 +76,9 @@ public class Learner {
 
 	//a method to compute the distance between two sets of features
 	public static float computeDistance(float[] firstFeatures, float[] secondFeatures, 
-			float[] weight, float power){
+			float[] weight){
 		float dist = 0;
-		for (int i = 0; i < numFeatures; i++) {
+		for (int i = 0; i < Math.min(firstFeatures.length, secondFeatures.length); i++) {
 			if (firstFeatures[i] != -1 && secondFeatures[i] != -1) {
 				dist += weight[i] * Math.abs(firstFeatures[i] - secondFeatures[i]);
 			}
@@ -100,7 +104,7 @@ public class Learner {
 
 			//compute the distance between this set of features i and all other sets of features and save in distanceList
 			for(int j=0;j<numSites * numInstances; j++){
-				distanceList[j] = computeDistance(feat[i], feat[j], weights, POWER);
+				distanceList[j] = computeDistance(feat[i], feat[j], weights);
 			}
 
 			//find the max distance
@@ -242,7 +246,7 @@ public class Learner {
 			}
 			int maxclass = 0;
 			for (int at = 0; at < numSites * numTestInstances + numOpenTest; at++) {
-				distlist[at] = computeDistance(feat[is], feat[at], weight, POWER);
+				distlist[at] = computeDistance(feat[is], feat[at], weight);
 			}
 			float max =  arrayMax(distlist);
 			distlist[is] = max;
@@ -467,18 +471,18 @@ public class Learner {
 			}
 		}
 
-		float[] weight = new float[numFeatures];
+		//float[] weight = new float[numFeatures];
 
 		int TRIAL_NUM = 1;
 		int SUBROUND_NUM = 5;
 		float maxacc = 0F;
 		
-		weight = initialize_weights(feat, weight);
+		float[] weights = initializeWeights(numFeatures);
 
 		float[] prevweight = new float[numFeatures];
 		for (int i = 0; i < numFeatures; i++)
 		{
-			prevweight[i] = weight[i];
+			prevweight[i] = weights[i];
 		}
 
 		for (int trial = 0; trial < TRIAL_NUM; trial++){
@@ -486,8 +490,8 @@ public class Learner {
 			{
 				int start = (numSites * numInstances) / SUBROUND_NUM * subround;
 				int end = (numSites * numInstances) / SUBROUND_NUM * (subround + 1);
-				recommend(start, end, feat, weight );
-				float tp = accuracy(testfeat, weight, opentestfeat);
+				recommend(start, end, feat, weights);
+				float tp = accuracy(testfeat, weights, opentestfeat);
 
 				if (tp > maxacc)
 				{
@@ -503,7 +507,7 @@ public class Learner {
 			
 			for (int i = 0; i < numFeatures; i++)
 			{
-				writer.println(weight[i] * 1000);
+				writer.println(weights[i] * 1000);
 			}
 			writer.close();
 		} catch (FileNotFoundException e) {
