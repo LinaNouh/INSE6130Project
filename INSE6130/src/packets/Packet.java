@@ -1,3 +1,4 @@
+package packets;
 
 public class Packet implements Comparable<Packet> {
 

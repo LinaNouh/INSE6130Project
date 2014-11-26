@@ -1,11 +1,14 @@
-import static org.junit.Assert.*;
+package tests;
 
+import packets.Packet;
+import packets.PacketComparator;
+import defenses.DecoyPageDefense;
+
+import static org.junit.Assert.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-
 import org.junit.Test;
-
 
 public class DecoyPageDefenseTest {
 

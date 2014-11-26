@@ -1,3 +1,6 @@
+package tests;
+
+import packets.Packet;
 import org.junit.Test;
 import static org.junit.Assert.*;
 

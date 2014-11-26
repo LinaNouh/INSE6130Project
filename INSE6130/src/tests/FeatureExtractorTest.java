@@ -1,3 +1,7 @@
+package tests;
+
+import packets.Feature;
+import packets.FeatureExtractor;
 import static org.junit.Assert.*;
 import java.util.ArrayList;
 

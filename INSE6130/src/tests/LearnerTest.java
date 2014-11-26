@@ -1,3 +1,6 @@
+package tests;
+
+import attack.Learner;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
@@ -116,6 +119,11 @@ public class LearnerTest {
 		String expected = ""+(double)((0.8-0.5)*weights[0]+(0.9-0.6)*weights[1]+(0.7-0.4)*weights[2]); 
 		
 		assertEquals(expected , actual);
+	}
+	
+	@Test
+	public void testRecommend(){
+		
 	}
 	
 }
