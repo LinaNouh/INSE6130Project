@@ -42,6 +42,11 @@ public class Packet implements Comparable<Packet> {
 		this.direction = d;
 	}
 
+	//check equality of two packets
+	public boolean equals(Packet p){
+		return this.direction == p.getDirection() && this.time == p.getTime();
+	}
+	
 	@Override
 	//Comparing packets based on time in order to sort them
 	public int compareTo(Packet p) {
